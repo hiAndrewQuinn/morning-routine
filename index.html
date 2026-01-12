@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Morning Routine 2.0</title>
+		<style>
+:root {
+	--primary: #4a90e2;
+	--bg: #f0f4f8;
+	--card: #ffffff;
+	--radius: 16px;
+}
+* { box-sizing: border-box; font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; padding: 1rem; background: var(--bg); color: #334155; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+header { width: 100%; max-width: 500px; margin: 1rem 0; text-align: center; }
+
+main { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 2rem; }
+
+/* The Row Logic */
+.list-row {
+	background: var(--card);
+	padding: 1rem;
+	border-radius: var(--radius);
+	display: flex;
+	align-items: center;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	border: 2px solid transparent;
+}
+
+		/* 1. COMPLETED ITEMS: Shrink and fade */
+		.list-row.done {
+			transform: scale(0.9);
+			opacity: 0.5;
+			filter: grayscale(1);
+		}
+
+		/* 2. THE ACTIVE ITEM: The first unchecked one */
+		/* We handle this via JS class 'active-task' for better cross-browser support */
+		.list-row.active-task {
+			transform: scale(1.08);
+			border-color: var(--primary);
+			box-shadow: 0 10px 15px -3px rgba(74, 144, 226, 0.2);
+			z-index: 10;
+		}
+		.active-task label {
+			font-weight: 700;
+			font-size: 1.2rem;
+			color: #000;
+		}
+
+		.list-row input { margin-right: 1rem; transform: scale(1.5); cursor: pointer; }
+		.list-row label { flex: 1; cursor: pointer; font-size: 1.05rem; transition: font-size 0.3s; }
+
+		footer { width: 100%; max-width: 500px; position: sticky; bottom: 1rem; background: rgba(240, 244, 248, 0.9); padding: 10px; border-radius: 20px; backdrop-filter: blur(5px); }
+		.action-row { display: flex; gap: 0.6rem; }
+		button.action { flex: 1; background: #64748b; color: white; border: none; border-radius: 12px; padding: 0.8rem; font-weight: 600; cursor: pointer; }
+		#progress-bar { width: 100%; height: 8px; background: #cbd5e1; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
+		#progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.4s; }
+		</style>
+	</head>
+	<body>
+
+		<header>
+			<h1>Morning</h1>
+		</header>
+
+		<main id="checklist"></main>
+
+		<footer>
+			<div id="progress-bar"><div id="progress-fill"></div></div>
+			<div class="action-row">
+				<button class="action" id="btnReset">Reset Progress</button>
+			</div>
+		</footer>
+
+		<script>
+			const STORE_KEY = 'morning_v2_scale';
+			const ITEMS = [
+				{ id: 'wake', text: 'Wake up' },
+				{ id: 'phone', text: 'Grab your phone' },
+				{ id: 'check_here', text: 'Check off to here' },
+				{ id: 'out_bed', text: 'Get out of bed' },
+				{ id: 'clothes', text: "Yesterday's clothes" },
+				{ id: 'crocs', text: 'Slip on house crocs' },
+				{ id: 'bathroom', text: 'Go to half bathroom' },
+				{ id: 'water1', text: 'Drink metallic mug of water' },
+				{ id: 'teeth', text: 'Brush teeth' },
+				{ id: 'kitchen', text: 'Go to kitchen' },
+				{ id: 'water2', text: 'Get another metallic mug' },
+				{ id: 'office', text: 'Go to office' },
+				{ id: 'bike', text: 'Move bike near desk' },
+				{ id: 'desk_water', text: 'Put water on desk' },
+				{ id: 'headphones', text: 'Grab wireless headphones' },
+				{ id: 'cardio', text: '30m Cardio (Tweet/Listen/Ride)' }
+			];
+
+			const checklistEl = document.getElementById('checklist');
+			const progressFill = document.getElementById('progress-fill');
+
+			function save(ids) { localStorage.setItem(STORE_KEY, JSON.stringify(ids)); }
+			function load() { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+
+			function updateUI() {
+				const checked = Array.from(document.querySelectorAll('input:checked')).map(el => el.id);
+
+				// Handle "Check off to here" logic
+				if (checked.includes('check_here') && (!checked.includes('wake') || !checked.includes('phone'))) {
+					document.getElementById('wake').checked = true;
+					document.getElementById('phone').checked = true;
+					updateUI(); // Recursively update once
+					return;
+				}
+
+				save(Array.from(document.querySelectorAll('input:checked')).map(el => el.id));
+
+				const rows = document.querySelectorAll('.list-row');
+				let foundActive = false;
+
+				rows.forEach(row => {
+					const cb = row.querySelector('input');
+					row.classList.remove('done', 'active-task');
+
+					if (cb.checked) {
+						row.classList.add('done');
+					} else if (!foundActive) {
+						row.classList.add('active-task');
+						foundActive = true;
+						row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					}
+				});
+
+				const percent = (checked.length / ITEMS.length) * 100;
+				progressFill.style.width = percent + '%';
+			}
+
+			function render() {
+				const state = load();
+				checklistEl.innerHTML = ITEMS.map(it => `
+					<div class="list-row ${state.includes(it.id) ? 'done' : ''}">
+					<input type="checkbox" id="${it.id}" ${state.includes(it.id) ? 'checked' : ''}>
+					<label for="${it.id}">${it.text}</label>
+					</div>
+					`).join('');
+				updateUI();
+			}
+
+					checklistEl.addEventListener('change', updateUI);
+					document.getElementById('btnReset').onclick = () => { if(confirm('Reset?')) { save([]); render(); } };
+
+					render();
+		</script>
+
+	</body>
+</html>

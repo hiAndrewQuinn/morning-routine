@@ -3,97 +3,91 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Morning Routine (OLED Black)</title>
+		<title>Routine Tracker (OLED)</title>
 		<style>
 :root {
 	--bg: #000000;
 	--card: #000000;
-	--text-main: #a1a1aa; /* Soft grey */
-	--text-dim: #3f3f46;  /* Dark grey for finished */
-	--primary-dim: #1e3a8a; /* Deep blue, low light */
+	--text-main: #a1a1aa;
+	--text-dim: #3f3f46;
+	--primary-dim: #1e3a8a;
 	--border: #27272a;
-	--radius: 16px;
+	--radius: 12px;
 }
 * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; padding: 1rem; background: var(--bg); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
 
-header { width: 100%; max-width: 500px; margin: 0.5rem 0 1.5rem; text-align: left; }
-h1 { margin: 0; font-size: 1.2rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+header { width: 100%; max-width: 500px; margin-bottom: 1rem; }
 
-main { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 5rem; }
-
-.list-row {
-	background: var(--card);
-	padding: 1.2rem;
-	border-radius: var(--radius);
-	display: flex;
-	align-items: center;
-	transition: all 0.25s ease;
-	border: 1px solid var(--border);
+/* Tabs */
+.tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+.tab-btn { 
+	flex: 1; 
+	padding: 0.8rem; 
+	background: #0a0a0a; 
+	border: 1px solid var(--border); 
+	color: var(--text-dim); 
+	border-radius: var(--radius); 
+	cursor: pointer; 
+	font-size: 0.9rem;
+	transition: all 0.2s;
 }
-
-		/* COMPLETED: Shrink and nearly disappear */
-		.list-row.done {
-			transform: scale(0.92);
-			opacity: 0.3;
-			border-color: transparent;
-		}
-		.list-row.done label {
-			color: var(--text-dim);
-			text-decoration: line-through;
+		.tab-btn.active { 
+			border-color: var(--primary-dim); 
+			color: #fff; 
+			background: #111;
 		}
 
-		/* ACTIVE: Scaled up with a very dim blue border */
-		.list-row.active-task {
-			transform: scale(1.05);
-			border-color: var(--primary-dim);
-			background: #050505;
-			z-index: 10;
+		main { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8rem; }
+
+		.list-row {
+			background: var(--card);
+			padding: 1rem;
+			border-radius: var(--radius);
+			display: flex;
+			align-items: center;
+			border: 1px solid var(--border);
+			transition: opacity 0.2s;
 		}
-		.active-task label {
-			color: #ffffff;
-			font-weight: 600;
-		}
+
+		.list-row.done { opacity: 0.25; transform: scale(0.97); }
+		.list-row.done label { text-decoration: line-through; color: var(--text-dim); }
+
+		.list-row.active-task { border-color: var(--primary-dim); background: #050505; }
+		.active-task label { color: #ffffff; font-weight: 500; }
 
 		input[type="checkbox"] {
-			margin-right: 1.2rem;
-			transform: scale(1.4);
+			margin-right: 1rem;
+			transform: scale(1.3);
 			accent-color: var(--primary-dim);
-			filter: brightness(0.7); /* Mutes the checkbox color */
+			filter: brightness(0.7);
 		}
 
-		label { flex: 1; cursor: pointer; font-size: 1.1rem; transition: color 0.3s; }
+		label { flex: 1; cursor: pointer; font-size: 1rem; line-height: 1.4; }
 
 		footer { 
-			width: 100%; 
-			max-width: 500px; 
-			position: fixed; 
-			bottom: 0; 
-			background: #000; 
-			padding: 1rem 1rem 2rem; 
-			border-top: 1px solid var(--border);
+			width: 100%; max-width: 500px; position: fixed; bottom: 0; 
+			background: #000; padding: 1rem 1rem 2rem; border-top: 1px solid var(--border);
 		}
 
-		.progress-container { width: 100%; height: 4px; background: #111; border-radius: 2px; margin-bottom: 1.5rem; }
-		#progress-fill { height: 100%; background: var(--primary-dim); width: 0%; transition: width 0.4s; }
+		.progress-container { width: 100%; height: 4px; background: #111; border-radius: 2px; margin-bottom: 1rem; }
+		#progress-fill { height: 100%; background: var(--primary-dim); width: 0%; transition: width 0.3s; }
 
 		.action-row { display: flex; gap: 1rem; }
 		button.action { 
-			flex: 1; 
-			background: #111; 
-			color: var(--text-dim); 
-			border: 1px solid var(--border); 
-			border-radius: 8px; 
-			padding: 0.6rem; 
-			font-size: 0.8rem;
-			cursor: pointer; 
+			flex: 1; background: #0a0a0a; color: var(--text-dim); 
+			border: 1px solid var(--border); border-radius: 8px; 
+			padding: 0.6rem; font-size: 0.8rem; cursor: pointer; 
 		}
 		</style>
 	</head>
 	<body>
 
 		<header>
-			<h1>Routine</h1>
+			<div class="tabs">
+				<button class="tab-btn active" onclick="switchMode('morning')">Morning</button>
+				<button class="tab-btn" onclick="switchMode('evening')">Evening</button>
+			</div>
 		</header>
 
 		<main id="checklist"></main>
@@ -101,71 +95,151 @@ main { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap
 		<footer>
 			<div class="progress-container"><div id="progress-fill"></div></div>
 			<div class="action-row">
-				<button class="action" id="btnReset">Reset Progress</button>
+				<button class="action" id="btnReset">Reset Current Routine</button>
 			</div>
 		</footer>
 
 		<script>
-			const STORE_KEY = 'morning_v3_blackout';
-			const ITEMS = [
-				{ id: 'wake', text: 'Wake up' },
-				{ id: 'phone', text: 'Grab your phone' },
-				{ id: 'check_here', text: 'Check off to here' },
-				{ id: 'out_bed', text: 'Get out of bed' },
-				{ id: 'clothes', text: "Yesterday's clothes" },
-				{ id: 'crocs', text: 'Slip on house crocs' },
-				{ id: 'bathroom', text: 'Go to half bathroom' },
-				{ id: 'water1', text: 'Drink metallic mug of water' },
-				{ id: 'teeth', text: 'Brush teeth' },
-				{ id: 'kitchen', text: 'Go to kitchen' },
-				{ id: 'water2', text: 'Get another metallic mug' },
-				{ id: 'office', text: 'Go to office' },
-				{ id: 'bike', text: 'Move bike near desk' },
-				{ id: 'desk_water', text: 'Put water on desk' },
-				{ id: 'headphones', text: 'Grab wireless headphones' },
-				{ id: 'cardio', text: '30m Cardio' }
-			];
+			const DATA = {
+				morning: [
+					{ id: 'm1', text: 'wake up' },
+					{ id: 'm2', text: 'grab your phone' },
+					{ id: 'check_here', text: 'check off to here' },
+					{ id: 'm3', text: 'get out of bed' },
+					{ id: 'm4', text: 'put on fresh socks' },
+					{ id: 'm5', text: 'put on fresh underwear' },
+					{ id: 'm6', text: 'put on fresh shirt' },
+					{ id: 'm7', text: 'slip on house crocs' },
+					{ id: 'm8', text: 'exit bedroom' },
+					{ id: 'm9', text: 'go to half-bathroom' },
+					{ id: 'm10', text: 'get metallic mug from medicine cabinet' },
+					{ id: 'm11', text: 'fill with 250 ml water' },
+					{ id: 'm12', text: 'drink' },
+					{ id: 'm13', text: 'brush teeth' },
+					{ id: 'm14', text: 'exit half-bathroom' },
+					{ id: 'm15', text: 'go to kitchen' },
+					{ id: 'm16', text: 'fill up kettle to full' },
+					{ id: 'm17', text: 'begin to boil water (for later - do not wait for it)' },
+					{ id: 'm18', text: 'get another metallic mug from kitchen' },
+					{ id: 'm19', text: 'fill with 250 ml more tap water' },
+					{ id: 'm20', text: 'lay out 3 metallic mugs for later coffee next to kettle' },
+					{ id: 'm21', text: 'go to office' },
+					{ id: 'm22', text: 'air purifiers to max' },
+					{ id: 'm23', text: 'place mug on standing desk' },
+					{ id: 'm24', text: 'close window (if open)' },
+					{ id: 'm25', text: 'take 200 mg caffeine tablet' },
+					{ id: 'm26', text: 'begin 2mg nicotine lozenge' },
+					{ id: 'm27', text: 'move standing desk to standing position' },
+					{ id: 'm28', text: 'move exercise bike to next of desk' },
+					{ id: 'm29', text: 'take off house crocs' },
+					{ id: 'm30', text: 'accept the sacrifice of your socks in the name of fitness' },
+					{ id: 'm31', text: 'get on exercise bike' },
+					{ id: 'm32', text: '30 minutes moderate cardio' },
+					{ id: 'm33', text: 'get off exercise bike' },
+					{ id: 'm34', text: 'slip on bathroom crocs (house crocs ok)' },
+					{ id: 'm35', text: 'go to window' },
+					{ id: 'm36', text: 'full open window (co2 exchange)' },
+					{ id: 'm37', text: 'set air purifiers to low' },
+					{ id: 'm38', text: 'grab towel (if in office)' },
+					{ id: 'm39', text: 'exit office' },
+					{ id: 'm40', text: 'enter bedroom' },
+					{ id: 'm41', text: 'get fresh socks' },
+					{ id: 'm42', text: 'get fresh underwear' },
+					{ id: 'm43', text: 'get fresh shirt' },
+					{ id: 'm44', text: 'exit bedroom' },
+					{ id: 'm45', text: 'enter bathroom' },
+					{ id: 'm46', text: 'place new clothing on washing machine' },
+					{ id: 'm47', text: 'place towel folded on washing machine' },
+					{ id: 'm48', text: 'remove worn clothing' },
+					{ id: 'm49', text: 'set down anti-slip mat in shower' },
+					{ id: 'm50', text: 'shower in bathroom crocs (ok to skip hair, brief, focus on sweat/feet/genitals/armpits)' },
+					{ id: 'm51', text: 'dry off above waist' },
+					{ id: 'm52', text: 'apply cerave to upper body' },
+					{ id: 'm53', text: 'take off bathroom crocs' },
+					{ id: 'm54', text: 'dry off below waist' },
+					{ id: 'm55', text: 'apply cerave to lower body' },
+					{ id: 'm56', text: 'dry off bathroom crocs with towel' },
+					{ id: 'm57', text: 'put on shirt' },
+					{ id: 'm58', text: 'put on underwear' },
+					{ id: 'm59', text: 'put on socks' },
+					{ id: 'm60', text: 'gather clothing' },
+					{ id: 'm61', text: 'put on bathroom crocs' },
+					{ id: 'm62', text: 'gather towel' },
+					{ id: 'm63', text: 'exit bathroom' },
+					{ id: 'm64', text: 'place worn clothing in hamper' },
+					{ id: 'm65', text: 'place wet towel on drying rack' },
+					{ id: 'm66', text: 'exit bedroom' },
+					{ id: 'm67', text: 'enter kitchen' },
+					{ id: 'm68', text: 'boil kettle (second time)' },
+					{ id: 'm69', text: 'make 750 ml instant coffee or tea (3 metallic mugs)' },
+					{ id: 'm70', text: 'grab mugs' },
+					{ id: 'm71', text: 'exit kitchen' },
+					{ id: 'm72', text: 'enter bedroom' },
+					{ id: 'm73', text: 'place mugs on desk' },
+					{ id: 'm74', text: 'close window' },
+					{ id: 'm75', text: 'sit at computer' },
+					{ id: 'm76', text: 'you are now ready to begin your day' }
+				],
+				evening: [
+					{ id: 'e1', text: 'Placeholder: Review calendar' },
+					{ id: 'e2', text: 'Placeholder: Clean desk' }
+				]
+			};
 
+			let currentMode = localStorage.getItem('routine_mode') || 'morning';
 			const checklistEl = document.getElementById('checklist');
 			const progressFill = document.getElementById('progress-fill');
 
-			function save(ids) { localStorage.setItem(STORE_KEY, JSON.stringify(ids)); }
-			function load() { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); }
+			function save(state) { localStorage.setItem(`state_${currentMode}`, JSON.stringify(state)); }
+			function load() { return JSON.parse(localStorage.getItem(`state_${currentMode}`) || '[]'); }
+
+			function switchMode(mode) {
+				currentMode = mode;
+				localStorage.setItem('routine_mode', mode);
+				document.querySelectorAll('.tab-btn').forEach(btn => {
+					btn.classList.toggle('active', btn.innerText.toLowerCase().includes(mode));
+				});
+				render();
+			}
 
 			function updateUI() {
 				const checkedElements = Array.from(document.querySelectorAll('input:checked'));
 				let checkedIds = checkedElements.map(el => el.id);
 
-				// Automatic logic for "Check off to here"
-				if (checkedIds.includes('check_here') && (!checkedIds.includes('wake') || !checkedIds.includes('phone'))) {
-					document.getElementById('wake').checked = true;
-					document.getElementById('phone').checked = true;
+				// Special logic for "check off to here"
+				if (currentMode === 'morning' && checkedIds.includes('check_here')) {
+					const autoIds = ['m1', 'm2'];
+					autoIds.forEach(id => {
+						const el = document.getElementById(id);
+						if (el) el.checked = true;
+					});
 					checkedIds = Array.from(document.querySelectorAll('input:checked')).map(el => el.id);
 				}
 
-				save(checkedIds);
+			save(checkedIds);
 
-				const rows = document.querySelectorAll('.list-row');
-				let foundActive = false;
+			const rows = document.querySelectorAll('.list-row');
+			let foundActive = false;
 
-				rows.forEach(row => {
-					const cb = row.querySelector('input');
-					row.classList.remove('done', 'active-task');
+			rows.forEach(row => {
+				const cb = row.querySelector('input');
+				row.classList.remove('done', 'active-task');
+				if (cb.checked) {
+					row.classList.add('done');
+				} else if (!foundActive) {
+					row.classList.add('active-task');
+					foundActive = true;
+				}
+			});
 
-					if (cb.checked) {
-						row.classList.add('done');
-					} else if (!foundActive) {
-						row.classList.add('active-task');
-						foundActive = true;
-					}
-				});
-
-				progressFill.style.width = (checkedIds.length / ITEMS.length * 100) + '%';
+				const total = DATA[currentMode].length;
+				progressFill.style.width = (checkedIds.length / total * 100) + '%';
 			}
 
 			function render() {
+				const items = DATA[currentMode];
 				const state = load();
-				checklistEl.innerHTML = ITEMS.map(it => `
+				checklistEl.innerHTML = items.map(it => `
 					<div class="list-row">
 					<input type="checkbox" id="${it.id}" ${state.includes(it.id) ? 'checked' : ''}>
 					<label for="${it.id}">${it.text}</label>
@@ -175,10 +249,15 @@ main { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap
 			}
 
 					checklistEl.addEventListener('change', updateUI);
-					document.getElementById('btnReset').onclick = () => { if(confirm('Reset all?')) { save([]); render(); } };
+					document.getElementById('btnReset').onclick = () => { 
+						if(confirm(`Reset ${currentMode} routine?`)) { 
+							save([]); 
+							render(); 
+						} 
+					};
 
-					render();
+					// Initialize
+					switchMode(currentMode);
 		</script>
-
 	</body>
 </html>
